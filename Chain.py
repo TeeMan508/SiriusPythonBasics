@@ -41,7 +41,8 @@ class Chain():
 
         J1tetha = jacobian(x, tetha)
         J2tetha = jacobian(y, tetha)
-        tetha_d = jacobian(tetha*t, t)
+        tetha_d = SX.sym('d_tetha', self.N)
+        tetha_dd = SX.sym('dd_tetha', self.N)
 
         x_d = J1tetha @ tetha_d
         y_d = J2tetha @ tetha_d
@@ -53,9 +54,13 @@ class Chain():
 
         left = jacobian(L, tetha).T
         right = jacobian(L, tetha_d).T
-        right_d = jacobian(right, t).T
-        print(left)
-        print(right_d) #разобраться как сделать tetha функией от t
+        right1 = jacobian(right, tetha)
+        right2 = jacobian(right, tetha_d)
+        equation_right = left - right1@tetha_d
+        equation_left = right2
+        print(solve(equation_left, equation_right).size())
+
+        #print(left.size())#разобраться как сделать tetha функией от t
 
 
 
