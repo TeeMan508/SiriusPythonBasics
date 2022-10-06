@@ -1,1 +1,2 @@
-print(sum(i for i in range(1, int(input('input N')))))
+import numpy as np
+print(np.zeros((4, 1)).shape)
