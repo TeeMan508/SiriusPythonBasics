@@ -60,7 +60,6 @@ class Chain():
         equation_left = right2
         print(solve(equation_left, equation_right).size())
 
-        #print(left.size())#разобраться как сделать tetha функией от t
 
 
 
