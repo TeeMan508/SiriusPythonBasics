@@ -50,7 +50,7 @@ class Chain():
         x_d = J1tetha @ tetha_d
         y_d = J2tetha @ tetha_d
 
-        L = (1 / 2) * self.config["m"] * (sumsqr(x_d) + sumsqr(y_d)) + (1 / 2) * self.I * sumsqr(tetha_d) - self.config[
+        L = (1 / 2) * self.config["m"] * (sumsqr(x_d) + sumsqr(y_d)) + (1 / 2) * self.I * sumsqr(tetha_d)/2 - self.config[
             "m"] * self.config["g"] * sum1(y)
 
         left = jacobian(L, tetha).T
@@ -68,7 +68,7 @@ class Chain():
 
 
     def Runge_Kutta_4(self, f, t_min, t_max, dt):
-        tetha0 = [pi/4 for i in range(0, self.N)]
+        tetha0 = [pi/2 for i in range(0, self.N)]
         tetha_d0 = [0 for i in range(0, self.N)]
         tetha0 = np.array(tetha0)
         tetha_d0 = np.array(tetha_d0)
@@ -83,7 +83,6 @@ class Chain():
             q1 = dt * g(tetha_d0)
 
             k2 = dt * f(tetha0 + q1/2, tetha_d0+k1/2)
-
             q2 = dt * g(tetha_d0+k1/2)
 
             k3 = dt * f(tetha0 + q2 / 2, tetha_d0 + k2 / 2)
@@ -115,16 +114,30 @@ class Chain():
             y = [-cos(tetha[0])*self.config["l"]/2]
             for i in range(1, len(tetha)):
                 x.append((sin(tetha[i])/2 + sum(np.sin(tetha[0:i])))*self.config["l"])
-                y.append(-(cos(tetha[i])/2 + sum(np.cos(tetha[0:i]))) * self.config["l"])
+                y.append(-(cos(tetha[i])/2 + sum(np.cos(tetha[0:i])))*self.config["l"])
             X.append(x)
             Y.append(y)
-
-        return [X, Y]
+        resx = []
+        resy = []
+        for k in range(0, len(X)):
+            bufx = [float(X[k][0]-sin(all_tetha[k][0])*self.config["l"]/2), float(X[k][0]+sin(all_tetha[k][0])*self.config["l"]/2)]
+            bufy = [float(Y[k][0]+cos(all_tetha[k][0])*self.config["l"]/2), float(Y[k][0]-cos(all_tetha[k][0])*self.config["l"]/2)]
+            for i in range(1, len(X[0])):
+                bufx.append(float(bufx[i-1]+X[k][i]+sin(all_tetha[k][i])*self.config["l"]/2))
+                bufy.append(float(bufy[i-1]+Y[k][i]-cos(all_tetha[k][i])*self.config["l"]/2))
+                #print(len(bufy))
+            resx.append(bufx)
+            resy.append(bufy)
+        print()
+        return [resx, resy]
 
     def build_animation(self, X, Y):
         fig = plt.figure(figsize=(10, 10))
         ax = fig.add_subplot(1,1,1)
-        line, = ax.plot([], [])
+        ax.set_xlim([-1.5,1.5])
+        ax.set_ylim([-1.5,1.5])
+        ax.grid()
+        line, = ax.plot(X[0], Y[0])
 
         def init():
             line.set_data([], [])
@@ -134,10 +147,11 @@ class Chain():
             line.set_data(X[i], Y[i])
             return line,
 
-        anim = FuncAnimation(fig, animate, init_func=init, frames=self.count, interval=100)
-        anim.save('test.gif', writer='imagemagick')
-        plt.show()
+        cadr = [i for i in range(0, len(X))]
 
+        anim = FuncAnimation(fig, func=animate, frames=cadr, interval=1, blit=True, repeat=False)
+        #anim.save('test.gif', writer='imagemagick')
+        plt.show()
 
     def buf(self, X, Y):
         for i in range(0, len(X)):
@@ -151,10 +165,10 @@ class Chain():
 
 
 
-test = Chain(3)
+test = Chain(1)
 test.config_input("config.json")
-tetha = test.Runge_Kutta_4(test.calculate_symbol_equations(), 0, 3, 0.1)
+tetha = test.Runge_Kutta_4(test.calculate_symbol_equations(), 0, 1, 0.001)
 data = test.build_data(tetha)
-test.buf(data[0], data[1])
-#test.build_animation(data[0], data[1])
+#test.buf(data[0], data[1])
+test.build_animation(data[0], data[1])
 

@@ -1,28 +1,29 @@
-
-import numpy as np
-from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
+import matplotlib.pyplot as plt
+import numpy as np
+fig, ax = plt.subplots()
+x = np.arange(-2 * np.pi, 2 * np.pi, 0.1)
+y = np.cos(x)
 
-plt.style.use('seaborn-pastel')
-
-fig = plt.figure()
-ax = plt.axes(xlim=(0, 4), ylim=(-2, 2))
-line, = ax.plot([], [], lw=3)
-
-
-def init():
-    line.set_data([], [])
-    return line,
+line, = ax.plot(x, y)
 
 
-def animate(i):
-    x = np.linspace(0, 4, 1000)
-    y = np.sin(2 * np.pi * (x - 0.01 * i))
-    line.set_data(x, y)
-    return line,
+def update_cos(frame, line, x):
+    # frame - параметр, который меняется от кадра к кадру
+    # в данном случае - это начальная фаза (угол)
+    # line - ссылка на объект Line2D
+    line.set_ydata( np.cos(x+frame) )
+    return [line]
 
+phasa = np.arange(0, 4*np.pi, 0.1)
 
-anim = FuncAnimation(fig, animate, init_func=init,
-                     frames=200, interval=20, blit=True)
+animation = FuncAnimation(
+    fig,                # фигура, где отображается анимация
+    func=update_cos,    # функция обновления текущего кадра
+    frames=phasa,       # параметр, меняющийся от кадра к кадру
+    fargs=(line, x),    # дополнительные параметры для функции update_cos
+    interval=30,       # задержка между кадрами в мс
+    blit=True,          # использовать ли двойную буферизацию
+    repeat=False)
 
-anim.save('sine_wave.gif', writer='imagemagick')
+plt.show()
