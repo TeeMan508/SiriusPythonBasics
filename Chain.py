@@ -153,10 +153,16 @@ class Chain():
         # anim.save('test.gif', writer='imagemagick')
         plt.show()
 
+    def buf(self, X, Y):
+        for i in range(0, len(X)):
+            plt.plot(X[i], Y[i])
+
+        plt.show()
 
 
-test = Chain(5, 60)
+test = Chain(5, 20)
 test.config_input("config.json")
 tetha = test.Runge_Kutta_4(test.calculate_symbol_equations(), 0, 10, pi/2, 0)
 data = test.build_data(tetha)
+#test.buf(data[0], data[1])
 test.build_animation(data[0], data[1])
