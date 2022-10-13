@@ -1,0 +1,6 @@
+setup.py
+NElementChain.egg-info/PKG-INFO
+NElementChain.egg-info/SOURCES.txt
+NElementChain.egg-info/dependency_links.txt
+NElementChain.egg-info/not-zip-safe
+NElementChain.egg-info/top_level.txt
