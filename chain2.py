@@ -6,12 +6,11 @@ from matplotlib.animation import FuncAnimation
 import time
 
 
-class Chain():
-    def __init__(self, N, fps):
+class Initialization():
+    def __init__(self, N):
         self.config = {}
         self.N = N
         self.I = 0
-        self.fps = fps
 
     def config_input(self, file_path):
         with open(file_path, "r") as config_file:
@@ -58,45 +57,21 @@ class Chain():
         f = Function('f', [tetha, tetha_d], [dif_right])
         return f
 
-    def Runge_Kutta_4(self, f, t_min, t_max, tethastart, dtethastart):
-        tetha0 = [tethastart for i in range(0, self.N)]
-        tetha_d0 = [dtethastart for i in range(0, self.N)]
-        tetha0 = np.array(tetha0)
-        tetha_d0 = np.array(tetha_d0)
-        res = [tetha0]
-        dt = 1/self.fps
 
-        def g(tetha_d):
-            return tetha_d
+class Calculations():
+    def __init__(self, t_min, t_max, tethastart, dtethastart, fps, main):
+        self.fps = fps
+        self.t_min = t_min
+        self.t_max = t_max
+        self.tethastart = tethastart
+        self.dtethastart = dtethastart
+        self.config = main.config
+        self.N = main.N
+        self.f = main.calculate_symbol_equations()
 
-        while (t_min <= t_max):
-            k1 = dt * f(tetha0, tetha_d0)
-            q1 = dt * g(tetha_d0)
-
-            k2 = dt * f(tetha0 + q1 / 2, tetha_d0 + k1 / 2)
-            q2 = dt * g(tetha_d0 + k1 / 2)
-
-            k3 = dt * f(tetha0 + q2 / 2, tetha_d0 + k2 / 2)
-            q3 = dt * g(tetha_d0 + k2 / 2)
-
-            k4 = dt * f(tetha0 + q3 / 2, tetha_d0 + k3 / 2)
-            q4 = dt * g(tetha_d0 + k3 / 2)
-
-            tetha_d1 = tetha_d0 + (k1 + 2 * k2 + 2 * k3 + k4) / 6
-            tetha1 = tetha0 + (q1 + 2 * q2 + 2 * q3 + q4) / 6
-
-            res.append(tetha1)
-
-            tetha0 = tetha1
-            tetha_d0 = tetha_d1
-            t_min = t_min + dt
-
-        return res
-
-    def build_data(self, all_tetha):
+    def transform_data(self, all_tetha):
         X = []
         Y = []
-
         for tetha in all_tetha:
             tetha = np.array(tetha)
             x = [sin(tetha[0]) * self.config["l"] / 2]
@@ -120,43 +95,77 @@ class Chain():
             resy.append(bufy)
         return [resx, resy]
 
-    def build_animation(self, X, Y):
+    def Solve(self):
+        tetha0 = [self.tethastart for i in range(0, self.N)]
+        tetha_d0 = [self.dtethastart for i in range(0, self.N)]
+        tetha0 = np.array(tetha0)
+        tetha_d0 = np.array(tetha_d0)
+        res = [tetha0]
+        dt = 1 / self.fps
+
+        def g(tetha_d):
+            return tetha_d
+
+        while (self.t_min <= self.t_max):
+            k1 = dt * self.f(tetha0, tetha_d0)
+            q1 = dt * g(tetha_d0)
+
+            k2 = dt * self.f(tetha0 + q1 / 2, tetha_d0 + k1 / 2)
+            q2 = dt * g(tetha_d0 + k1 / 2)
+
+            k3 = dt * self.f(tetha0 + q2 / 2, tetha_d0 + k2 / 2)
+            q3 = dt * g(tetha_d0 + k2 / 2)
+
+            k4 = dt * self.f(tetha0 + q3 / 2, tetha_d0 + k3 / 2)
+            q4 = dt * g(tetha_d0 + k3 / 2)
+
+            tetha_d1 = tetha_d0 + (k1 + 2 * k2 + 2 * k3 + k4) / 6
+            tetha1 = tetha0 + (q1 + 2 * q2 + 2 * q3 + q4) / 6
+
+            res.append(tetha1)
+
+            tetha0 = tetha1
+            tetha_d0 = tetha_d1
+            self.t_min = self.t_min + dt
+
+        return self.transform_data(res)
+
+
+class Animation():
+    def __init__(self, calc):
+        self.data = calc.Solve()
+        self.config = calc.config
+        self.fps = calc.fps
+        self.anim = None
+
+    def build_animation(self):
         fig = plt.figure(figsize=(7, 7))
         ax = fig.add_subplot(1, 1, 1)
-        plt.title("Number of elements: " + str(self.N))
-        ax.set_xlim([-self.config["l"]*(self.N+2), self.config["l"]*(self.N+2)])
-        ax.set_ylim([-self.config["l"]*(self.N+2), self.config["l"]*(self.N+2)])
+        plt.title("Number of elements: " + str(len(self.data[0][0]) - 1))
+        ax.set_xlim([-self.config["l"] * (len(self.data[0][0]) + 1), self.config["l"] * (len(self.data[0][0]) + 1)])
+        ax.set_ylim([-self.config["l"] * (len(self.data[0][0]) + 1), self.config["l"] * (len(self.data[0][0]) + 1)])
         ax.grid()
-        line, = ax.plot(X[0], Y[0], marker='o', markerfacecolor='r', linewidth=5, markersize= 5)
-        #line2, = ax.plot(X[0], Y[0], marker='o')
+        line, = ax.plot(self.data[0][0], self.data[1][0], marker='o', markerfacecolor='r', linewidth=5, markersize=5)
 
         def animate(i):
-            line.set_data(X[i], Y[i])
+            line.set_data(self.data[0][i], self.data[1][i])
             line.set_marker('o')
             line.set_markerfacecolor('r')
             line.set_linewidth(5)
             line.set_markersize(5)
-            #line2.set_data(X[i], Y[i])
-            #line2.set_marker('o')
+            # line2.set_data(X[i], Y[i])
+            # line2.set_marker('o')
             return line,
 
-        cadr = [i for i in range(0, len(X))]
+        cadr = [i for i in range(0, len(self.data[0]))]
 
-        anim = FuncAnimation(fig, func=animate, frames=cadr, interval=1000/self.fps, blit=True, repeat=False)
+        anim = FuncAnimation(fig, func=animate, frames=cadr, interval=1000 / self.fps, blit=True, repeat=False)
         # anim.save('test.gif', writer='imagemagick')
         plt.show()
 
-
-
-
-
-
-
-
-test = Chain(2, 60)
-test.config_input("config.json")
-#test.minimize_problem()
-tetha = test.Runge_Kutta_4(test.calculate_symbol_equations(), 0, 10, pi/2, 0)
-data = test.build_data(tetha)
-print(data)
-test.build_animation(data[0], data[1])
+# if __name__ == "__main__":
+#     test_Init = Initialization(5)
+#     test_Init.config_input("config.json")
+#     test_Calc = Calculations(0, 3, pi / 2, 0, 60, test_Init)
+#     test_Ani = Animation(test_Calc)
+#     test_Ani.build_animation()
