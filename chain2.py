@@ -160,7 +160,6 @@ class Animation():
         cadr = [i for i in range(0, len(self.data[0]))]
 
         anim = FuncAnimation(fig, func=animate, frames=cadr, interval=1000 / self.fps, blit=True, repeat=False)
-        # anim.save('test.gif', writer='imagemagick')
         plt.show()
 
 # if __name__ == "__main__":
