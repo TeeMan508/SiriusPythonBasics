@@ -1,7 +1,7 @@
 setup.py
-NElelmentsChain/Chain.py
-NElelmentsChain/__init__.py
-NElelmentsChain/chain2.py
+NElelmentChain/Chain.py
+NElelmentChain/__init__.py
+NElelmentChain/chain2.py
 NElementChain.egg-info/PKG-INFO
 NElementChain.egg-info/SOURCES.txt
 NElementChain.egg-info/dependency_links.txt
