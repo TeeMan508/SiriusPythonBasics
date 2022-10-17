@@ -146,17 +146,3 @@ class Chain():
         # anim.save('test.gif', writer='imagemagick')
         plt.show()
 
-
-
-
-
-
-
-
-test = Chain(2, 60)
-test.config_input("config.json")
-#test.minimize_problem()
-tetha = test.Runge_Kutta_4(test.calculate_symbol_equations(), 0, 10, pi/2, 0)
-data = test.build_data(tetha)
-print(data)
-test.build_animation(data[0], data[1])
